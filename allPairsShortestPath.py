@@ -79,11 +79,11 @@ def FloydWarshall(G):
     k = 1
     i = 0
     j = 0
-    for i in range(length):
+    for k in range(1,length):
        # d.append(list())
-        for j in range(length):
+        for i in range(length):
             #d[i].append([])
-            for k in range(length):
+            for j in range(length):
                 #d[i][j].append(0)
                 if d[i][k][k-1] != inf and d[k][j][k-1] != inf :
                     d[i][j][k] = min(d[i][j][k-1], int(d[i][k][k-1]) + int(d[k][j][k-1]))
@@ -94,8 +94,7 @@ def FloydWarshall(G):
     for i in range(length):
         pathPairs.append(list())
         for j in range(length):
-            pathPairs[i].append(d[i][j][0])
-    # TODO: Fill in your Floyd-Warshall algorithm here
+            pathPairs[i].append(d[i][j][length-1])
     print('FloydWarshall algorithm is incomplete')
     # The pathPairs list will contain the 2D array of shortest paths between all pairs of vertices 
     # [[w(1,1),w(1,2),...]
