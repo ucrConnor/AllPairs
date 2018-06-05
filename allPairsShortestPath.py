@@ -1,4 +1,5 @@
 import argparse
+import cProfile
 import os
 import re
 import sys
@@ -37,12 +38,12 @@ def shortest_path(G, s):
     k = 0
     i = 0
     j = 0
-    for k in range(len(vertices) - 1):
-        for i in range(len(vertices) ):
-            for j in range(len(vertices)):
-                if  edges[i][j] != inf:
-                    if d[j] > d[i] + int(edges[i][j]):
-                        return False
+    # for k in range(len(vertices) - 1):
+    #     for i in range(len(vertices) ):
+    #         for j in range(len(vertices)):
+    #             if  edges[i][j] != inf:
+    #                 if d[j] > d[i] + int(edges[i][j]):
+    #                     return False
     return d
 
 def BellmanFord(G):
@@ -60,7 +61,7 @@ def FloydWarshall(G):
     pathPairs=[]
    # d = []
     length = len(vertices)
-    d = [[[0 for k in range(length)] for j in range(length)] for i in range(length)]
+    d = [[[0 for k in range(length + 1)] for j in range(length)] for i in range(length)]
     for i in range(length):
        # d.append(list())
         for j in range(length):
@@ -76,26 +77,32 @@ def FloydWarshall(G):
                    # d[i][j].append(inf)
                    d[i][j][0] = inf
 
-    k = 1
-    i = 0
-    j = 0
-    for k in range(1,length):
+
+    for k in range(1,length + 1):
        # d.append(list())
         for i in range(length):
             #d[i].append([])
             for j in range(length):
                 #d[i][j].append(0)
-                if d[i][k][k-1] != inf and d[k][j][k-1] != inf :
-                    d[i][j][k] = min(d[i][j][k-1], int(d[i][k][k-1]) + int(d[k][j][k-1]))
-                else:
-                    d[i][j][k] = d[i][j][k-1]
-    i = 0
-    j = 0
+
+                prev = d[i][j][k-1]
+                take = d[i][k-1][k-1] + d[k-1][j][k-1]
+
+                d[i][j][k] = min(prev,take)
+
+    # for i in range(length):
+    #     pathPairs.append(list())
+    #     for j in range(length):
+    #         prev = d[i][length-1][length - 1]
+    #         take = d[i][length-1][length - 1] + d[length-1][j][length - 1]
+    #
+    #         val = min(prev, take)
+    #         pathPairs[i].append(val)
+
     for i in range(length):
         pathPairs.append(list())
         for j in range(length):
-            pathPairs[i].append(d[i][j][length-1])
-    print('FloydWarshall algorithm is incomplete')
+            pathPairs[i].append(d[i][j][length])
     # The pathPairs list will contain the 2D array of shortest paths between all pairs of vertices 
     # [[w(1,1),w(1,2),...]
     #  [w(2,1),w(2,2),...]
@@ -138,8 +145,10 @@ def readFile(filename):
     return (vertices,edges)
 
 def matrixEquality(a,b):
-    if len(a) == 0 or len(b) == 0 or len(a) != len(b): return False
-    if len(a[0]) != len(b[0]): return False
+    if len(a) == 0 or len(b) == 0 or len(a) != len(b):
+        return False
+    if len(a[0]) != len(b[0]):
+        return False
     for i,row in enumerate(a):
         for j,value in enumerate(b):
             if a[i][j] != b[i][j]:
@@ -148,22 +157,46 @@ def matrixEquality(a,b):
 
 
 def main(filename,algorithm):
+    profile1 = cProfile.Profile()
+    profile2 = cProfile.Profile()
+
     G=readFile(filename)
     pathPairs = []
     # G is a tuple containing a list of the vertices, and a list of the edges
     # in the format ((source,sink),weight)
     if algorithm == 'b' or algorithm == 'B':
-        # TODO: Insert timing code here
-        pathPairs = BellmanFord(G)
+        if args.profile:
+            profile1.enable()
+            pathPairs = BellmanFord(G)
+            profile1.print_stats()
+            profile1.disable()
+        else:
+            pathPairs = BellmanFord(G)
     if algorithm == 'f' or algorithm == 'F':
-        # TODO: Insert timing code here
-        pathPairs = FloydWarshall(G)
+        if args.profile:
+            profile2.enable()
+            pathPairs = FloydWarshall(G)
+            profile2.print_stats()
+            profile2.disable()
+        else:
+            pathPairs = FloydWarshall(G)
     if algorithm == 'a':
-        print('running both') 
-        pathPairsBellman = BellmanFord(G)
-        pathPairsFloyd = FloydWarshall(G)
+        print('running both')
+        if args.profile:
+            profile1.enable()
+            pathPairsBellman = BellmanFord(G)
+            profile1.print_stats()
+            profile1.disable()
+
+            profile2.enable()
+            pathPairsFloyd = FloydWarshall(G)
+            profile2.print_stats()
+            profile2.disable()
+        else:
+            pathPairsBellman = BellmanFord(G)
+            pathPairsFloyd = FloydWarshall(G)
         pathPairs = pathPairsBellman
-        if matrixEquality(pathPairsBellman,pathPairsFloyd):
+        if not matrixEquality(pathPairsBellman,pathPairsFloyd):
             print('Floyd-Warshall and Bellman-Ford did not produce the same result')
     with open(os.path.splitext(filename)[0]+'_shortestPaths.txt','w') as f:
         for row in pathPairs:
