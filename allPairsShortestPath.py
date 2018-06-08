@@ -35,21 +35,23 @@ def shortest_path(G, s):
                     if d[j] > d[i] + int(edges[i][j]):
                         d[j] = d[i] + int(edges[i][j])
 
-    k = 0
-    i = 0
-    j = 0
-    # for k in range(len(vertices) - 1):
-    #     for i in range(len(vertices) ):
-    #         for j in range(len(vertices)):
-    #             if  edges[i][j] != inf:
-    #                 if d[j] > d[i] + int(edges[i][j]):
-    #                     return False
+
+    for i in range(len(vertices) ):
+        for j in range(len(vertices)):
+             if  edges[i][j] != inf:
+                if d[j] > d[i] + int(edges[i][j]):
+                    return False
     return d
 
 def BellmanFord(G):
     pathPairs=[]
     for i in vertices:
-           pathPairs.append(shortest_path(G, i))
+        val = shortest_path(G, i)
+        if not val:
+            return False
+        pathPairs.append(val)
+
+
     # The pathPairs list will contain the 2D array of shortest paths between all pairs of vertices 
     # [[w(1,1),w(1,2),...]
     #  [w(2,1),w(2,2),...]
@@ -103,6 +105,10 @@ def FloydWarshall(G):
         pathPairs.append(list())
         for j in range(length):
             pathPairs[i].append(d[i][j][length])
+
+    for i in range(length):
+        if pathPairs[i][i] < 0:
+            return False
     # The pathPairs list will contain the 2D array of shortest paths between all pairs of vertices 
     # [[w(1,1),w(1,2),...]
     #  [w(2,1),w(2,2),...]
@@ -145,6 +151,9 @@ def readFile(filename):
     return (vertices,edges)
 
 def matrixEquality(a,b):
+    if not a and not b:
+        return True
+
     if len(a) == 0 or len(b) == 0 or len(a) != len(b):
         return False
     if len(a[0]) != len(b[0]):
@@ -199,10 +208,13 @@ def main(filename,algorithm):
         if not matrixEquality(pathPairsBellman,pathPairsFloyd):
             print('Floyd-Warshall and Bellman-Ford did not produce the same result')
     with open(os.path.splitext(filename)[0]+'_shortestPaths.txt','w') as f:
-        for row in pathPairs:
-            for weight in row:
-                f.write(str(weight)+' ')
-            f.write('\n')
+        if not pathPairs:
+            f.write("False")
+        else:
+            for row in pathPairs:
+                for weight in row:
+                    f.write(str(weight)+' ')
+                f.write('\n')
 
 if __name__ == '__main__':
     args=parser.parse_args()
