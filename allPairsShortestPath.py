@@ -51,7 +51,6 @@ def BellmanFord(G):
             return False
         pathPairs.append(val)
 
-
     # The pathPairs list will contain the 2D array of shortest paths between all pairs of vertices 
     # [[w(1,1),w(1,2),...]
     #  [w(2,1),w(2,2),...]
@@ -60,51 +59,33 @@ def BellmanFord(G):
     return pathPairs
 
 def FloydWarshall(G):
-    pathPairs=[]
-   # d = []
+
     length = len(vertices)
-    d = [[[0 for k in range(length + 1)] for j in range(length)] for i in range(length)]
+    #d = [[[0 for k in range(length + 1)] for j in range(length)] for i in range(length)]
+    d = [[0 for j in range(length)] for i in range(length)]
+    pathPairs = [[0 for j in range(length)] for i in range(length)]
     for i in range(length):
-       # d.append(list())
         for j in range(length):
-           # d[i].append(list())
-           # d[i][0]
+
             if i != j:
-               # d[i][j].append(0)
-              # d[i][j][0] = 0
                 if edges[i][j] != inf and edges[i][j]:
-                   # d[i][j].append(edges[i][j])
-                   d[i][j][0] = int(edges[i][j])
+                   d[i][j] = int(edges[i][j])
                 else:
-                   # d[i][j].append(inf)
-                   d[i][j][0] = inf
+                   d[i][j] = inf
 
 
     for k in range(1,length + 1):
-       # d.append(list())
         for i in range(length):
-            #d[i].append([])
             for j in range(length):
-                #d[i][j].append(0)
-
-                prev = d[i][j][k-1]
-                take = d[i][k-1][k-1] + d[k-1][j][k-1]
-
-                d[i][j][k] = min(prev,take)
+                prev = d[i][j]
+                take = d[i][k-1] + d[k-1][j]
+                pathPairs[i][j] = min(prev,take)
+        d = pathPairs
 
     # for i in range(length):
     #     pathPairs.append(list())
     #     for j in range(length):
-    #         prev = d[i][length-1][length - 1]
-    #         take = d[i][length-1][length - 1] + d[length-1][j][length - 1]
-    #
-    #         val = min(prev, take)
-    #         pathPairs[i].append(val)
-
-    for i in range(length):
-        pathPairs.append(list())
-        for j in range(length):
-            pathPairs[i].append(d[i][j][length])
+    #         pathPairs[i].append(d[i][j][length])
 
     for i in range(length):
         if pathPairs[i][i] < 0:
@@ -178,6 +159,7 @@ def main(filename,algorithm):
             profile1.enable()
             pathPairs = BellmanFord(G)
             profile1.print_stats()
+            profile1.dump_stats()
             profile1.disable()
         else:
             pathPairs = BellmanFord(G)
@@ -186,6 +168,7 @@ def main(filename,algorithm):
             profile2.enable()
             pathPairs = FloydWarshall(G)
             profile2.print_stats()
+            profile2.dump_stats()
             profile2.disable()
         else:
             pathPairs = FloydWarshall(G)
